@@ -4,9 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using CityInfo.API.Data;
 using CityInfo.API.Models;
+using CityInfo.API.Services;
 using CityInfo.API.ViewModels;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace CityInfo.API.Controllers
 {
@@ -14,6 +16,15 @@ namespace CityInfo.API.Controllers
     [ApiController]
     public class PointsOfInterestController : ControllerBase
     {
+        private readonly ILogger<PointsOfInterestController> logger;
+        private readonly IMailService _mailService;
+
+        public PointsOfInterestController(ILogger<PointsOfInterestController> logger,
+                                            IMailService mailService)
+        {
+            this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            this._mailService = mailService ?? throw new ArgumentNullException(nameof(mailService));
+        }
         // GET api/values
         [HttpGet]
         public IActionResult GetPointsOfInterset(int cityId)
@@ -30,9 +41,14 @@ namespace CityInfo.API.Controllers
         [HttpGet("{id}",Name = "GetPointOFInterest")]
         public IActionResult GetPointOfInterestById(int cityId,int id)
         {
+            try
+            {
+                //throw new Exception("Try Exception");
             var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
             if (city == null)
             {
+                logger.LogInformation($"City with id {cityId}  was not found ");
+
                 return NotFound();
             }
             var pointOfInterest = city.PointsOfInterest.FirstOrDefault(p => p.Id == id);
@@ -41,6 +57,13 @@ namespace CityInfo.API.Controllers
                 return NotFound();
             }
             return Ok(pointOfInterest);
+
+            }
+            catch(Exception ex)
+            {
+                logger.LogCritical($"Exception while getting point of interest ", ex);
+                return StatusCode(500, "Error while handling the request");
+            }
         }
 
         
@@ -162,6 +185,8 @@ namespace CityInfo.API.Controllers
                 return NotFound();
             }
             city.PointsOfInterest.Remove(pointOfInterestToBeDeleted);
+            _mailService.Send("Point of interest was deleted"
+                    ,$"Point of interest { pointOfInterestToBeDeleted.Name} with id { pointOfInterestToBeDeleted.Id} was deleted.");
             return NoContent();
         }
     }
