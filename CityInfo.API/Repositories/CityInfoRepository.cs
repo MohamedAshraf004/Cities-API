@@ -21,7 +21,6 @@ namespace CityInfo.API.Repositories
         {
            var city= _dbContext.Cities.Where(c => c.Id == cityId).FirstOrDefault();
             city.PointsOfInterest.Add(pointOfInterest);
-            throw new NotImplementedException();
         }
 
         public bool CityExists(int cityId)
@@ -62,18 +61,12 @@ namespace CityInfo.API.Repositories
 
         public bool Save()
         {
-            var result= _dbContext.SaveChanges();
-            if (result==1)
-            {
-                return true;
-            }
-            return false;
+            return _dbContext.SaveChanges() >=1;
         }
 
         public void UpdatePointOfInterestForCity(int cityId, PointOfInterest pointOfInterest)
         {
-            var updatedPoint = _dbContext.PointOfInterests.Attach(pointOfInterest);
-            updatedPoint.State = EntityState.Modified;
+          
         }
     }
 }

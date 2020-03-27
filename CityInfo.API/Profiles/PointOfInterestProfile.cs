@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using CityInfo.API.Enities;
 using CityInfo.API.Models;
+using CityInfo.API.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +14,7 @@ namespace CityInfo.API.Profiles
         public PointOfInterestProfile()
         {
             this.CreateMap<PointOfInterest, PointOfInterestDto>().ReverseMap();
+            this.CreateMap<PointOfInterestViewModel, PointOfInterest>().ReverseMap();
         }
     }
 }
