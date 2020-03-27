@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CityInfo.API.Data;
 using CityInfo.API.Models;
 using CityInfo.API.Services;
@@ -18,23 +19,41 @@ namespace CityInfo.API.Controllers
     {
         private readonly ILogger<PointsOfInterestController> logger;
         private readonly IMailService _mailService;
+        private readonly ICityInfoRepository _cityInfoRepository;
+
+        private readonly IMapper _mapper ; 
 
         public PointsOfInterestController(ILogger<PointsOfInterestController> logger,
-                                            IMailService mailService)
+                                            IMailService mailService,
+                                            ICityInfoRepository cityInfoRepository,
+                                            IMapper mapper)
         {
             this.logger = logger ?? throw new ArgumentNullException(nameof(logger));
             this._mailService = mailService ?? throw new ArgumentNullException(nameof(mailService));
+            this._cityInfoRepository = cityInfoRepository?? throw new ArgumentNullException(nameof(cityInfoRepository));
+            _mapper = mapper?? throw new ArgumentNullException(nameof(mapper));
         }
         // GET api/values
         [HttpGet]
         public IActionResult GetPointsOfInterset(int cityId)
         {
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
+            try
             {
-                return NotFound();
+                if (!_cityInfoRepository.CityExists(cityId))
+                {
+                    logger.LogInformation($"City with id {cityId} wasn't found when " +
+                        $"accessing points of interest.");
+                    return NotFound();
+                }
+                var pointsOfInterest = _cityInfoRepository.GetPointsOfInterestForCity(cityId);
+
+                return Ok(_mapper.Map<IEnumerable<PointOfInterestDto>>(pointsOfInterest));
             }
-            return Ok(city.PointsOfInterest);
+            catch (Exception ex)
+            {
+                logger.LogCritical($"Exception while getting points of interest for city with id {cityId}.", ex);
+                return StatusCode(500, "A problem happened while handling your request.");
+            }
         }
 
         // GET api/values/5
@@ -43,26 +62,23 @@ namespace CityInfo.API.Controllers
         {
             try
             {
-                //throw new Exception("Try Exception");
-            var city = CitiesDataStore.Current.Cities.FirstOrDefault(c => c.Id == cityId);
-            if (city == null)
-            {
-                logger.LogInformation($"City with id {cityId}  was not found ");
-
-                return NotFound();
+                if (!_cityInfoRepository.CityExists(cityId))
+                {
+                    logger.LogInformation($"City with id {cityId} wasn't found when " +
+                        $"accessing points of interest.");
+                    return NotFound();
+                }
+                var pointOfInterest = _cityInfoRepository.GetPointOfInterestForCity(cityId,id);
+                if (pointOfInterest == null)
+                {
+                    return NotFound();
+                }
+                return Ok(_mapper.Map<PointOfInterestDto>(pointOfInterest));
             }
-            var pointOfInterest = city.PointsOfInterest.FirstOrDefault(p => p.Id == id);
-            if (pointOfInterest==null)
+            catch (Exception ex)
             {
-                return NotFound();
-            }
-            return Ok(pointOfInterest);
-
-            }
-            catch(Exception ex)
-            {
-                logger.LogCritical($"Exception while getting point of interest ", ex);
-                return StatusCode(500, "Error while handling the request");
+                logger.LogCritical($"Exception while getting points of interest for city with id {cityId}.", ex);
+                return StatusCode(500, "A problem happened while handling your request.");
             }
         }
 

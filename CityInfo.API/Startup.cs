@@ -2,8 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using AutoMapper;
 using CityInfo.API.Contexts;
 using CityInfo.API.Options;
+using CityInfo.API.Repositories;
 using CityInfo.API.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -57,6 +59,8 @@ namespace CityInfo.API
             {
                 option.DescribeAllEnumsAsStrings();
             });
+            services.AddAutoMapper(AppDomain.CurrentDomain.GetAssemblies());
+            services.AddScoped<ICityInfoRepository, CityInfoRepository>();
 #if DEBUG
             services.AddTransient<IMailService, LocalMailService>();
 #else
