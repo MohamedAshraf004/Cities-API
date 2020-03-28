@@ -67,6 +67,20 @@ namespace CityInfo.API.Repositories
         public void UpdatePointOfInterestForCity(int cityId, PointOfInterest pointOfInterest)
         {
           
+        } 
+        public void UpdateCity(int cityId, City city)
+        {
+             
+        } 
+        public void CreateCity(City city)
+        {
+            _dbContext.Cities.Add(city); 
         }
+        public void DeletCity(int cityId)
+        {
+            var city = GetCity(cityId);
+            _dbContext.Cities.Remove(city);
+        }
+
     }
 }

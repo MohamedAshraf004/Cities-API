@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using CityInfo.API.Data;
+using CityInfo.API.Enities;
 using CityInfo.API.Models;
 using CityInfo.API.Services;
 using CityInfo.API.ViewModels;
@@ -40,7 +41,7 @@ namespace CityInfo.API.Controllers
         }
 
         // GET api/<controller>/5
-        [HttpGet("{id}")]
+        [HttpGet("{id}",Name ="GetCity")]
         public IActionResult GetCityById(int id,bool includePointOfInterest=false)
         {
             var cityInfo = _cityInfoRepository.GetCity(id, includePointOfInterest);
@@ -58,20 +59,56 @@ namespace CityInfo.API.Controllers
 
         // POST api/<controller>
         [HttpPost]
-        public void Post([FromBody]string value)
+        public IActionResult Post([FromBody] CityCreatedViewModel model)
         {
+            if (model.Name==model.Description)
+            {
+                return BadRequest("Name shouldn't equal descrition" );
+            }
+            if (!ModelState.IsValid)
+            {
+                return BadRequest();
+            }
+            var city = _mapper.Map<City>(model);
+            _cityInfoRepository.CreateCity(city);
+            _cityInfoRepository.Save();
+
+            var cityDto = _mapper.Map<CityDto>(city);
+
+            return CreatedAtRoute("GetCity",
+                            new { id = cityDto.Id, includePointOfInterest=false},
+                            cityDto);
         }
 
         // PUT api/<controller>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody]string value)
+        public IActionResult Put(int id, [FromBody] CityCreatedViewModel model)
         {
+            if (!_cityInfoRepository.CityExists(id))
+            {
+                return NotFound();
+            }
+            var city = _cityInfoRepository.GetCity(id);
+                _mapper.Map(model,city);
+            _cityInfoRepository.UpdateCity(id, city);
+            _cityInfoRepository.Save();
+
+            return NoContent();
+
         }
 
         // DELETE api/<controller>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public IActionResult Delete(int id)
         {
+            if (!_cityInfoRepository.CityExists(id))
+            {
+                return NotFound();
+            }
+            _cityInfoRepository.DeletCity(id);
+            _cityInfoRepository.Save();
+
+            return NoContent();
         }
     }
 }

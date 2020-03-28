@@ -15,6 +15,7 @@ namespace CityInfo.API.Profiles
         {
             this.CreateMap<City,CityDto>().ReverseMap();
             this.CreateMap<City,CityWithoutPointOfInterest>().ReverseMap();
+            this.CreateMap<City,CityCreatedViewModel>().ReverseMap();
         }
     }
 }

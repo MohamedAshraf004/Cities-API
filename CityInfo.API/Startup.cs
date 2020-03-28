@@ -53,7 +53,7 @@ namespace CityInfo.API
             //});
             services.AddSwaggerGen(x =>
             {
-                x.SwaggerDoc("V1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "Cities API", Version = "V1" });
+                x.SwaggerDoc("V1", new Swashbuckle.AspNetCore.Swagger.Info { Title = "My Cities API", Version = "V1" });
             });
             services.ConfigureSwaggerGen(option =>
             {
@@ -81,8 +81,8 @@ namespace CityInfo.API
                 app.UseHsts();
             }
             app.UseStatusCodePages();
-
             app.UseHttpsRedirection();
+
             var swaggerOptions = new SwaggerOptions();
             Configuration.GetSection(nameof(SwaggerOptions)).Bind(swaggerOptions);
             app.UseSwagger(options =>
@@ -91,8 +91,9 @@ namespace CityInfo.API
             });
             app.UseSwaggerUI(options =>
             {
-                options.SwaggerEndpoint( swaggerOptions.UIEndPoint,swaggerOptions.Descreption);
+                options.SwaggerEndpoint( swaggerOptions.UIEndPoint,swaggerOptions.Descreption+" By Mohamed");
             });
+
             app.UseMvc();
         }
     }
